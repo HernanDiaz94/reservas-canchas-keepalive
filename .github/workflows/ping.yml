@@ -1,0 +1,50 @@
+# Mantiene despierto el backend de produccion.
+#
+# El plan gratuito de Render apaga el servicio a los 15 minutos sin trafico, y
+# el arranque en frio tarda entre 50 y 90 segundos. Para el usuario eso se ve
+# como "No se pudo conectar con el servidor" en el login, aunque su red y sus
+# datos esten bien.
+#
+# Un ping cada 5 minutos (el minimo que permite GitHub) deja 10 minutos de
+# margen contra el corte de 15. Cada 15 no sirve: el cron se atrasa unos
+# minutos y el servicio se durmio igual.
+#
+# El repo es publico a proposito: los minutos de Actions en repos publicos son
+# ilimitados. En uno privado, 288 corridas por dia se comen la cuota gratis.
+#
+# OJO: GitHub desactiva los workflows programados en repos sin actividad por 60
+# dias. Si algun dia deja de correr, se reactiva desde la pestana Actions.
+name: keepalive
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  # Para probarlo a mano sin esperar al horario.
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Despertar el backend
+        run: |
+          # --max-time 120: si el contenedor estaba dormido, el primer request
+          # se come el arranque en frio. No queremos que el ping corte antes.
+          codigo=$(curl -sS --max-time 120 -o /dev/null -w '%{http_code}' \
+            https://reservas-canchas-1.onrender.com/health || echo '000')
+          echo "HTTP $codigo"
+          # Un 502/503 durante el arranque no rompe nada: el proximo ping lo
+          # encuentra arriba. Solo falla si no hay respuesta ninguna, que si es
+          # un problema real.
+          if [ "$codigo" = "000" ]; then
+            echo "::error::El backend no respondio"
+            exit 1
+          fi
