@@ -5,12 +5,12 @@
 # como "No se pudo conectar con el servidor" en el login, aunque su red y sus
 # datos esten bien.
 #
-# Un ping cada 5 minutos (el minimo que permite GitHub) deja 10 minutos de
-# margen contra el corte de 15. Cada 15 no sirve: el cron se atrasa unos
-# minutos y el servicio se durmio igual.
+# Un ping cada 10 minutos deja 5 minutos de margen contra el corte de 15. Cada
+# 15 no sirve: el cron se atrasa unos minutos y el servicio se durmio igual.
+
 #
 # El repo es publico a proposito: los minutos de Actions en repos publicos son
-# ilimitados. En uno privado, 288 corridas por dia se comen la cuota gratis.
+# ilimitados. En uno privado, 144 corridas por dia se comen la cuota gratis.
 #
 # OJO: GitHub desactiva los workflows programados en repos sin actividad por 60
 # dias. Si algun dia deja de correr, se reactiva desde la pestana Actions.
@@ -18,7 +18,7 @@ name: keepalive
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/10 * * * *'
   # Para probarlo a mano sin esperar al horario.
   workflow_dispatch:
 
