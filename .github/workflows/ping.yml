@@ -7,7 +7,6 @@
 #
 # Un ping cada 10 minutos deja 5 minutos de margen contra el corte de 15. Cada
 # 15 no sirve: el cron se atrasa unos minutos y el servicio se durmio igual.
-
 #
 # El repo es publico a proposito: los minutos de Actions en repos publicos son
 # ilimitados. En uno privado, 144 corridas por dia se comen la cuota gratis.
